@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+translation_env/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+
+# Audio recordings and generated audio
+*.wav
+
+# Local speaker data
+speaker_names.json
+speakers.json
+
+# Local model files
+pretrained_models/
+speaker_models/
+
+# Exclude raw ISL video dataset
+sensea/ML Backend/sign_language/data/raw/isl_isolated_40words/
+
+# Frontend is outside this ML branch
+sensea/front/
+
+# Generated sign-language feature arrays
+sensea/ML Backend/sign_language/data/processed/*.npy
+
+# Experimental model checkpoints
+sensea/ML Backend/sign_language/models/*before*.pth
+sensea/ML Backend/sign_language/models/*backup*.pth
+sensea/ML Backend/sign_language/models/*flip_double*.pth

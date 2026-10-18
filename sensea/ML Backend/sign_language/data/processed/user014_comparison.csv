@@ -1,0 +1,14 @@
+user,true_label,closest_class,true_class_rank,true_class_mean_distance,closest_class_distance
+User014,drink,help,7,6.236569,4.946452
+User014,eat,help,8,5.792214,4.1895304
+User014,father,help,7,7.242638,5.565645
+User014,friend,help,11,5.1895437,3.2127607
+User014,hello,help,19,9.849753,5.690318
+User014,help,help,1,3.5222092,3.5222092
+User014,mother,help,9,5.588003,4.267674
+User014,no,help,2,4.750939,4.217954
+User014,please,help,6,5.052236,3.9106627
+User014,thank_you,help,12,6.4039083,4.3702426
+User014,water,help,11,6.409268,4.861485
+User014,yes,help,3,5.0993648,4.2737236
+User014,you,help,4,5.0148644,4.103977

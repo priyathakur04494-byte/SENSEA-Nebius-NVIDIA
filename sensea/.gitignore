@@ -1,0 +1,17 @@
+.env
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+translation_env/
+
+# Model files
+pretrained_models/
+speaker_models/
+
+# Audio files
+*.wav

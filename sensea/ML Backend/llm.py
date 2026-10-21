@@ -16,7 +16,7 @@ _client = OpenAI(
 
 MODEL = "nvidia/nemotron-3.5-lightning-30b-a3b"
 
-NOT_FOUND_RESPONSE = "Information not found."
+NOT_FOUND_RESPONSE = "I don't have enough information to answer that"
 
 # --------------------------------------------------
 # THINKING BLOCK STRIPPER
@@ -108,7 +108,7 @@ RAG_SYSTEM_PROMPT = (
     "3. Do NOT invent, guess, or fabricate any information.\n"
     "4. Do NOT infer topics not explicitly mentioned in the memories.\n"
     "5. If the memories do not contain a direct answer, respond with exactly:\n"
-    "   Information not found.\n"
+    "   I don't have enough information to answer that\n"
     "6. Do NOT output your reasoning, thinking steps, or analysis.\n"
     "7. Output ONLY the final answer — one sentence maximum.\n"
     "8. A memory about neural networks does NOT answer questions about "
@@ -116,7 +116,7 @@ RAG_SYSTEM_PROMPT = (
     "9. A memory about a lesson does NOT answer a question about an exam "
     "unless the memory explicitly mentions an exam.\n\n"
     "OUTPUT FORMAT:\n"
-    "One sentence answer from memory content, or: Information not found.\n"
+    "One sentence answer from memory content, or: I don't have enough information to answer that\n"
     "No preamble. No explanation. No reasoning. Just the answer."
 )
 

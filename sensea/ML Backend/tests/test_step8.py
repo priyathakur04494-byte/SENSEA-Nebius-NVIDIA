@@ -144,11 +144,11 @@ answer_d1 = chat(
 test(
     "D1: NVIDIA generation — classroom neural networks answer",
     answer_d1,
-    must_not_contain=["information not found"],
+    must_not_contain=["I don't have enough information to answer that"],
     expected_contains=[]  # LLM response; just check it's non-empty
 )
 # Just check answer is non-empty and not "Information not found"
-if answer_d1 and "information not found" not in answer_d1.lower():
+if answer_d1 and "i don't have enough information to answer that" not in answer_d1.lower():
     test("D1b: NVIDIA generation — answer is non-empty", answer_d1, expected_contains=[])
 else:
     test("D1b: NVIDIA generation — answer is non-empty", "", expected_contains=["non-empty answer"])
@@ -165,7 +165,7 @@ answer_e1 = chat(
 test(
     "E1: Not-found — unknown topic (physics exam)",
     answer_e1,
-    expected_contains=["information not found"]
+    expected_contains=["I don't have enough information to answer that"]
 )
 
 # E2: Quantum physics — no matching memory
@@ -176,7 +176,7 @@ answer_e2 = chat(
 test(
     "E2: Not-found — quantum physics not in memories",
     answer_e2,
-    expected_contains=["information not found"]
+    expected_contains=["I don't have enough information to answer that"]
 )
 
 # ==================================================
@@ -191,7 +191,7 @@ answer_f1 = chat(
 test(
     "F1: Mode protection — hospital cannot access classroom memories",
     answer_f1,
-    expected_contains=["information not found"]
+    expected_contains=["I don't have enough information to answer that"]
 )
 
 # F2: Classroom cannot access hospital appointment
@@ -202,7 +202,7 @@ answer_f2 = chat(
 test(
     "F2: Mode protection — classroom cannot access hospital appointment",
     answer_f2,
-    expected_contains=["information not found"]
+    expected_contains=["I don't have enough information to answer that"]
 )
 
 # ==================================================
@@ -257,19 +257,19 @@ test("J1: Classroom — when is my exam", answer_j1, expected_contains=["maths t
 
 # J2: classroom — what did the teacher explain?
 answer_j2 = chat("What did the teacher explain?", current_mode="classroom")
-test("J2: Classroom — teacher explained", answer_j2, must_not_contain=["information not found"])
+test("J2: Classroom — teacher explained", answer_j2, must_not_contain=["I don't have enough information to answer that"])
 
 # J3: classroom — what did the professor explain?
 answer_j3 = chat("What did the professor explain?", current_mode="classroom")
-test("J3: Classroom — professor explained", answer_j3, must_not_contain=["information not found"])
+test("J3: Classroom — professor explained", answer_j3, must_not_contain=["I don't have enough information to answer that"])
 
 # J4: classroom — what did the lecturer explain? (no lecturer in memories)
 answer_j4 = chat("What did the lecturer explain?", current_mode="classroom")
-test("J4: Classroom — lecturer not found", answer_j4, expected_contains=["information not found"])
+test("J4: Classroom — lecturer not found", answer_j4, expected_contains=["I don't have enough information to answer that"])
 
 # J5: classroom — what is my physics exam? (not in memories)
 answer_j5 = chat("What is my physics exam?", current_mode="classroom")
-test("J5: Classroom — physics exam not found", answer_j5, expected_contains=["information not found"])
+test("J5: Classroom — physics exam not found", answer_j5, expected_contains=["I don't have enough information to answer that"])
 
 # J6: hospital — when is my appointment?
 answer_j6 = chat("When is my appointment?", current_mode="hospital")
@@ -277,7 +277,7 @@ test("J6: Hospital — when is my appointment", answer_j6, expected_contains=["d
 
 # J7: hospital — when is my exam? (no exam in hospital)
 answer_j7 = chat("When is my exam?", current_mode="hospital")
-test("J7: Hospital — exam not found", answer_j7, expected_contains=["information not found"])
+test("J7: Hospital — exam not found", answer_j7, expected_contains=["I don't have enough information to answer that"])
 
 # J8: cross-mode — what do I have tomorrow at 3 PM?
 answer_j8 = chat("What do I have tomorrow at 3 PM?", current_mode="meeting")
@@ -293,7 +293,7 @@ test(
 
 # J10: unknown question — physics exam
 answer_j10 = chat("What is my physics exam?", current_mode="meeting")
-test("J10: Unknown — physics exam not found in meeting", answer_j10, expected_contains=["information not found"])
+test("J10: Unknown — physics exam not found in meeting", answer_j10, expected_contains=["I don't have enough information to answer that"])
 
 # ==================================================
 # RESULTS SUMMARY

@@ -244,17 +244,17 @@ test("P: Irrelevant memories rejected by threshold", str(len(retrieved_p)), expe
 
 # Q: Unknown information returns not found
 answer_q = chat("What is my physics exam?", "classroom", use_test_memories=False)
-test("Q: Unknown info returns not found", answer_q, expected_contains=["information not found"])
+test("Q: Unknown info returns not found", answer_q, expected_contains=["I don't have enough information to answer that"])
 
 # R: Classroom cannot access hospital memory
 answer_r = chat("When is my doctor appointment?", "classroom", use_test_memories=False)
 test("R: Classroom cannot access hospital appointment", answer_r,
-     expected_contains=["information not found"])
+     expected_contains=["I don't have enough information to answer that"])
 
 # S: Hospital cannot access classroom memory
 answer_s = chat("What did the professor explain?", "hospital", use_test_memories=False)
 test("S: Hospital cannot access classroom memory", answer_s,
-     expected_contains=["information not found"])
+     expected_contains=["I don't have enough information to answer that"])
 
 # T: Structured schedule search with real memories
 answer_t = chat("When is my exam?", "classroom", use_test_memories=False)
@@ -279,19 +279,19 @@ test("V1: [Reg] Classroom — when is my exam", answer_v1, expected_contains=["m
 
 answer_v2 = chat("What did the teacher explain?", "classroom", use_test_memories=True)
 test("V2: [Reg] Classroom — teacher explained", answer_v2,
-     must_not_contain=["information not found"])
+     must_not_contain=["I don't have enough information to answer that"])
 
 answer_v3 = chat("What did the professor explain?", "classroom", use_test_memories=True)
 test("V3: [Reg] Classroom — professor explained", answer_v3,
-     must_not_contain=["information not found"])
+     must_not_contain=["I don't have enough information to answer that"])
 
 answer_v4 = chat("What did the lecturer explain?", "classroom", use_test_memories=True)
 test("V4: [Reg] Classroom — lecturer not found", answer_v4,
-     expected_contains=["information not found"])
+     expected_contains=["I don't have enough information to answer that"])
 
 answer_v5 = chat("What is my physics exam?", "classroom", use_test_memories=True)
 test("V5: [Reg] Classroom — physics exam not found", answer_v5,
-     expected_contains=["information not found"])
+     expected_contains=["I don't have enough information to answer that"])
 
 answer_v6 = chat("When is my appointment?", "hospital", use_test_memories=True)
 test("V6: [Reg] Hospital — when is my appointment", answer_v6,
@@ -299,7 +299,7 @@ test("V6: [Reg] Hospital — when is my appointment", answer_v6,
 
 answer_v7 = chat("When is my exam?", "hospital", use_test_memories=True)
 test("V7: [Reg] Hospital — exam not found", answer_v7,
-     expected_contains=["information not found"])
+     expected_contains=["I don't have enough information to answer that"])
 
 answer_v8 = chat("What do I have tomorrow at 3 PM?", "meeting", use_test_memories=True)
 test("V8: [Reg] Cross-mode exact time — 3 PM", answer_v8, expected_contains=["maths test"])
@@ -311,7 +311,7 @@ test("V9: [Reg] Cross-mode time range", answer_v9,
 
 answer_v10 = chat("What is my physics exam?", "meeting", use_test_memories=True)
 test("V10: [Reg] Unknown — meeting mode", answer_v10,
-     expected_contains=["information not found"])
+     expected_contains=["I don't have enough information to answer that"])
 
 # Step 8 regression (TEST_MEMORIES path)
 retrieved_w1 = semantic_search(
@@ -338,20 +338,20 @@ test("W3: [Reg] Threshold — unrelated rejected", str(len(retrieved_w3)), expec
 answer_w4 = chat("What did we learn about neural networks?", "classroom",
                  use_test_memories=True)
 test("W4: [Reg] NVIDIA gen — classroom neural networks", answer_w4,
-     must_not_contain=["information not found"])
+     must_not_contain=["I don't have enough information to answer that"])
 
 answer_w5 = chat("What is my physics exam?", "classroom", use_test_memories=True)
 test("W5: [Reg] Not-found — physics exam", answer_w5,
-     expected_contains=["information not found"])
+     expected_contains=["I don't have enough information to answer that"])
 
 answer_w6 = chat("What did we learn about neural networks?", "hospital",
                  use_test_memories=True)
 test("W6: [Reg] Mode protection — hospital", answer_w6,
-     expected_contains=["information not found"])
+     expected_contains=["I don't have enough information to answer that"])
 
 answer_w7 = chat("When is my doctor appointment?", "classroom", use_test_memories=True)
 test("W7: [Reg] Mode protection — classroom/hospital", answer_w7,
-     expected_contains=["information not found"])
+     expected_contains=["I don't have enough information to answer that"])
 
 answer_w8 = chat("What do I have tomorrow?", "classroom", use_test_memories=True)
 test("W8: [Reg] Cross-mode schedule", answer_w8,
@@ -395,7 +395,7 @@ test("X1: Normalizer → memory_store integration",
 
 answer_x2 = chat("What did the professor explain?", "classroom", use_test_memories=False)
 test("X2: Normalizer → RAG → answer (professor)",
-     answer_x2, must_not_contain=["information not found"])
+     answer_x2, must_not_contain=["I don't have enough information to answer that"])
 
 # ==================================================
 # RESULTS SUMMARY

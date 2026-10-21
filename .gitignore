@@ -39,3 +39,6 @@ sensea/ML Backend/sign_language/data/processed/*.npy
 sensea/ML Backend/sign_language/models/*before*.pth
 sensea/ML Backend/sign_language/models/*backup*.pth
 sensea/ML Backend/sign_language/models/*flip_double*.pth
+
+# Local test virtual environment
+rag_test_env/

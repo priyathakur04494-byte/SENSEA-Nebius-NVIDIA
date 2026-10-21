@@ -5,7 +5,20 @@
 
 import sys
 from chatbot import chat
-from rag import semantic_search, retrieve_context, MIN_SIMILARITY
+from rag import semantic_search, retrieve_context, MIN_SIMILARITY, TEST_MEMORIES
+from memory_store import add_memories, clear_memories
+
+# --------------------------------------------------
+# TEST SETUP
+#
+# Step 8 was written against the hardcoded TEST_MEMORIES
+# fixture. Since Step 9 the default semantic_search()/chat()
+# path reads from memory_store, so seed the store with the
+# same fixture before running. No assertions are changed.
+# --------------------------------------------------
+
+clear_memories()
+add_memories(TEST_MEMORIES)
 
 # --------------------------------------------------
 # TEST RUNNER

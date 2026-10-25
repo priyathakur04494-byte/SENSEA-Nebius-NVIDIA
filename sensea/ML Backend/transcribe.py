@@ -66,6 +66,9 @@ transcription_queue = queue.Queue()
 
 recording = False
 stop_program = False
+shutdown_requested = False
+sentinel_sent = False
+shutdown_lock = threading.Lock()
 session_id = 0
 
 lock = threading.Lock()
@@ -694,17 +697,22 @@ def run_whisper(wav_path):
             timeout=30
         )
 
-        transcript = parse_output(
-            result.stdout
-        )
+        # A failed run (missing file, unreadable audio, bad model)
+        # makes whisper print its usage banner or an error message
+        # on stderr. That text is NOT a transcript, so it must never
+        # reach the conversation.
+        if result.returncode != 0:
 
-        if not transcript:
-
-            transcript = parse_output(
-                result.stderr
+            print(
+                f"  [Whisper failed with exit code "
+                f"{result.returncode}]"
             )
 
-        return transcript
+            return ""
+
+        return parse_output(
+            result.stdout
+        )
 
     except subprocess.TimeoutExpired:
 
@@ -1073,67 +1081,54 @@ print()
 # KEYBOARD CALLBACKS
 # ============================================================
 
-def on_press(key):
+# ============================================================
+# KEYBOARD CALLBACKS
+# ============================================================
 
+def on_press(key):
     global recording
     global session_id
 
     if key == keyboard.Key.space:
-
         with lock:
+            with shutdown_lock:
+                if stop_program or shutdown_requested:
+                    return
 
-            if not recording:
+            if recording:
+                return
 
-                session_id += 1
+            session_id += 1
+            clear_queue(audio_queue)
+            recording = True
 
-                clear_queue(
-                    audio_queue
-                )
-
-                recording = True
-
-                print()
-
-                print(
-                    "🎤 Listening..."
-                )
-
-                print(
-                    "Release SPACEBAR to "
-                    "transcribe"
-                )
+            print()
+            print("🎤 Listening...")
+            print("Release SPACEBAR to transcribe")
 
 
 def on_release(key):
-
     global recording
     global stop_program
+    global shutdown_requested
 
     if key == keyboard.Key.space:
-
         with lock:
-
             if recording:
-
                 recording = False
 
                 print()
-
-                print(
-                    "🛑 Recording stopped."
-                )
-
-                print(
-                    "⏳ Processing..."
-                )
+                print("🛑 Recording stopped.")
+                print("⏳ Processing...")
 
     elif key == keyboard.Key.esc:
-
-        with lock:
-
+        with shutdown_lock:
             stop_program = True
+            shutdown_requested = True
 
         return False
+
+
 
 
 # ============================================================
@@ -1166,13 +1161,10 @@ def audio_callback(
         )
 
     with lock:
-
         should_record = recording
-
         current_session = session_id
 
     if should_record:
-
         audio = np.array(
             indata[:, 0],
             dtype=np.float32,
@@ -1183,12 +1175,24 @@ def audio_callback(
             audio
         )
 
-        audio_queue.put(
-            (
-                current_session,
-                audio
-            )
-        )
+        with shutdown_lock:
+            if stop_program or shutdown_requested:
+                return
+            try:
+                audio_queue.put_nowait(
+                    (
+                        current_session,
+                        audio
+                    )
+                )
+                return
+            except Exception:
+                return
+    else:
+        with shutdown_lock:
+            if stop_program or shutdown_requested:
+                return
+        return
 
 
 # ============================================================
@@ -1206,7 +1210,6 @@ def transcription_worker():
         try:
 
             if item is None:
-
                 break
 
             chunk_session, audio = item
@@ -1500,9 +1503,10 @@ def transcription_worker():
                 and os.path.exists(wav_path)
             ):
 
-                os.remove(
-                    wav_path
-                )
+                try:
+                    os.remove(wav_path)
+                except Exception:
+                    pass
 
             transcription_queue.task_done()
 
@@ -1513,7 +1517,8 @@ def transcription_worker():
 
 worker = threading.Thread(
     target=transcription_worker,
-    daemon=True
+    daemon=True,
+    name="transcription_worker"
 )
 
 worker.start()
@@ -1744,8 +1749,70 @@ with sd.InputStream(
 
     finally:
 
-        transcription_queue.put(
-            None
-        )
+        try:
+            listener.stop()
+        except Exception:
+            pass
 
-        listener.stop()
+        # Stop accepting new audio before flushing existing work.
+        with shutdown_lock:
+            stop_program = True
+            shutdown_requested = True
+        # Flush audio already collected in memory before shutdown.
+        if current_samples > 0 and current_audio and active_session is not None:
+            try:
+                final_audio = np.concatenate(current_audio).copy()
+                transcription_queue.put((active_session, final_audio))
+                current_audio = []
+                current_samples = 0
+                active_session = None
+            except Exception as exc:
+                print(f"\n[Shutdown] Could not flush buffered audio: {exc}")
+
+
+        # Drain any items already in audio_queue to transcription_queue before sentinel
+        try:
+            while True:
+                try:
+                    chunk_session, audio_chunk = audio_queue.get_nowait()
+                    try:
+                        transcription_queue.put_nowait((chunk_session, audio_chunk))
+                    except Exception as exc:
+                        try:
+                            audio_queue.put_nowait((chunk_session, audio_chunk))
+                        except Exception:
+                            print(
+                                f"\n[Shutdown] Could not transfer or restore "
+                                f"audio for session {chunk_session}: {exc}"
+                            )
+                        else:
+                            print(
+                                f"\n[Shutdown] Could not transfer audio for "
+                                f"session {chunk_session}; restored it to "
+                                f"audio_queue: {exc}"
+                            )
+                        break
+                except queue.Empty:
+                    break
+        except Exception:
+            pass
+
+        with shutdown_lock:
+            stop_program = True
+            shutdown_requested = True
+            if not sentinel_sent:
+                sentinel_sent = True
+                try:
+                    transcription_queue.put_nowait(None)
+                except Exception:
+                    sentinel_sent = False
+            # else already sent, do not send again
+
+        # Graceful shutdown: join worker with bounded timeout
+        try:
+            if 'worker' in globals() and worker.is_alive():
+                worker.join(timeout=5.0)
+                if worker.is_alive():
+                    print("\n[Shutdown] Worker did not exit within timeout; continuing (incomplete shutdown possible)")
+        except Exception:
+            pass

@@ -430,6 +430,16 @@ def diarize_clip(audio: np.ndarray,
     """
     results: list[tuple[MatchResult, np.ndarray]] = []
 
+    # A missing or empty recording is not an error: it simply has
+    # no utterances to identify.
+    if audio is None:
+        return results
+
+    audio = np.asarray(audio, dtype=np.float32)
+
+    if audio.size == 0:
+        return results
+
     def _collect(seg: np.ndarray) -> None:
         emb = extract_embedding(seg)
         if emb is None:

@@ -586,17 +586,22 @@ def run_whisper(audio):
             timeout=30
         )
 
-        transcript = parse_output(
-            result.stdout
-        )
+        # A failed run (missing file, unreadable audio, bad model)
+        # makes whisper print its usage banner or an error message
+        # on stderr. That text is NOT a transcript, so it must never
+        # reach the conversation.
+        if result.returncode != 0:
 
-        if not transcript:
-
-            transcript = parse_output(
-                result.stderr
+            print(
+                f"❌ Whisper failed with exit code "
+                f"{result.returncode}."
             )
 
-        return transcript
+            return ""
+
+        return parse_output(
+            result.stdout
+        )
 
     except subprocess.TimeoutExpired:
 

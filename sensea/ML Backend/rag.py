@@ -181,13 +181,17 @@ def semantic_search(
     query: str,
     current_mode: str,
     top_k: int = 3,
-    use_test_memories: bool = False
+    use_test_memories: bool = False,
+    user_id: str | None = None
 ) -> list[dict]:
     """
     Main semantic search entry point.
 
     use_test_memories=True  → search TEST_MEMORIES (regression tests only)
     use_test_memories=False → search memory_store (real pipeline)
+
+    user_id is an optional trusted owner scope. The regression fixture is
+    unscoped; callers needing isolation must use the store path.
 
     Returns list of {"memory": {...}, "score": float}
     """
@@ -216,7 +220,17 @@ def semantic_search(
     else:
         # Real pipeline path: use memory_store
         from memory_store import get_entries_by_mode
-        entries = get_entries_by_mode(current_mode)
+
+        # Call without the keyword when unscoped so existing test mocks
+        # with the legacy (mode) signature keep working.
+        if user_id is None:
+            entries = get_entries_by_mode(current_mode)
+        else:
+            entries = get_entries_by_mode(
+                current_mode,
+                user_id=user_id
+            )
+
         return semantic_search_on_entries(query, entries, top_k)
 
 
@@ -247,7 +261,8 @@ def format_context(retrieved: list[dict]) -> str:
 def retrieve_context(
     query: str,
     current_mode: str,
-    use_test_memories: bool = False
+    use_test_memories: bool = False,
+    user_id: str | None = None
 ) -> tuple[list[dict], str]:
     """
     Run semantic search, apply topic mismatch guard,
@@ -256,10 +271,17 @@ def retrieve_context(
     use_test_memories=True  → regression test path
     use_test_memories=False → real pipeline path
 
+    user_id is an optional trusted owner scope for the store path.
+
     Returns (retrieved_memories, formatted_context_string).
     Returns ([], "") if nothing passes threshold or topic mismatches.
     """
-    retrieved = semantic_search(query, current_mode, use_test_memories=use_test_memories)
+    retrieved = semantic_search(
+        query,
+        current_mode,
+        use_test_memories=use_test_memories,
+        user_id=user_id
+    )
 
     if not retrieved:
         return [], ""

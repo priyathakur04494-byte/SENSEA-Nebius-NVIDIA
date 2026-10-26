@@ -4,6 +4,11 @@
 # Run with: python test_step8.py
 
 import sys
+
+from offline_llm import install_offline_llm
+
+FAKE_LLM = install_offline_llm()
+
 from chatbot import chat
 from rag import semantic_search, retrieve_context, MIN_SIMILARITY, TEST_MEMORIES
 from memory_store import add_memories, clear_memories
@@ -146,25 +151,28 @@ test(
 )
 
 # ==================================================
-# SECTION D: NVIDIA GENERATION (via chat())
+# SECTION D: ANSWER GENERATION ROUTE (offline fake LLM)
 # ==================================================
+#
+# The LLM is replaced by tests/offline_llm.py. This section never
+# contacts NVIDIA/Nebius and does not prove live API integration.
 
-# D1: Classroom semantic question → LLM-generated answer
+# D1: Classroom semantic question → generation route
 answer_d1 = chat(
     "What did we learn about neural networks?",
     current_mode="classroom"
 )
 test(
-    "D1: NVIDIA generation — classroom neural networks answer",
+    "D1: offline generation route — classroom neural networks",
     answer_d1,
     must_not_contain=["I don't have enough information to answer that"],
     expected_contains=[]  # LLM response; just check it's non-empty
 )
 # Just check answer is non-empty and not "Information not found"
 if answer_d1 and "i don't have enough information to answer that" not in answer_d1.lower():
-    test("D1b: NVIDIA generation — answer is non-empty", answer_d1, expected_contains=[])
+    test("D1b: offline generation route — answer is non-empty", answer_d1, expected_contains=[])
 else:
-    test("D1b: NVIDIA generation — answer is non-empty", "", expected_contains=["non-empty answer"])
+    test("D1b: offline generation route — answer is non-empty", "", expected_contains=["non-empty answer"])
 
 # ==================================================
 # SECTION E: NOT-FOUND PROTECTION (Step 8)
@@ -207,15 +215,20 @@ test(
     expected_contains=["I don't have enough information to answer that"]
 )
 
-# F2: Classroom cannot access hospital appointment
+# F2: A schedule question is answered from every mode
+#
+# The schedule of the user is one calendar, so a schedule question may
+# be answered from another mode. A conversation question still is not
+# (see F1).
 answer_f2 = chat(
     "When is my doctor appointment?",
     current_mode="classroom"
 )
 test(
-    "F2: Mode protection — classroom cannot access hospital appointment",
+    "F2: Cross-mode schedule — classroom finds the hospital appointment",
     answer_f2,
-    expected_contains=["I don't have enough information to answer that"]
+    expected_contains=["doctor appointment"],
+    must_not_contain=["I don't have enough information to answer that"]
 )
 
 # ==================================================
@@ -288,9 +301,11 @@ test("J5: Classroom — physics exam not found", answer_j5, expected_contains=["
 answer_j6 = chat("When is my appointment?", current_mode="hospital")
 test("J6: Hospital — when is my appointment", answer_j6, expected_contains=["doctor appointment"])
 
-# J7: hospital — when is my exam? (no exam in hospital)
+# J7: hospital — when is my exam? (cross-mode schedule lookup)
 answer_j7 = chat("When is my exam?", current_mode="hospital")
-test("J7: Hospital — exam not found", answer_j7, expected_contains=["I don't have enough information to answer that"])
+test("J7: Cross-mode schedule — hospital finds the classroom exam", answer_j7,
+     expected_contains=["maths test"],
+     must_not_contain=["I don't have enough information to answer that"])
 
 # J8: cross-mode — what do I have tomorrow at 3 PM?
 answer_j8 = chat("What do I have tomorrow at 3 PM?", current_mode="meeting")

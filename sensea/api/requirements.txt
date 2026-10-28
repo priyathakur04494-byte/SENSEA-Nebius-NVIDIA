@@ -1,0 +1,72 @@
+# ============================================================
+# SENSEA API — Python Requirements
+# ============================================================
+#
+# Pin ML library versions for IndicTrans2 / Kokoro compatibility.
+# After any upgrade, re-test translation and TTS before deploying.
+#
+# Install with:
+#   pip install -r requirements.txt
+#
+# Python >= 3.11 recommended.
+# ============================================================
+
+# ── FastAPI Server ──────────────────────────────────────────
+fastapi>=0.111.0,<1.0
+uvicorn[standard]>=0.29.0,<1.0
+python-multipart>=0.0.9     # multipart/form-data file uploads
+
+# ── Config ──────────────────────────────────────────────────
+python-dotenv>=1.0.0
+
+# ── Data validation ─────────────────────────────────────────
+pydantic>=2.7.0,<3.0
+
+# ── Audio processing ─────────────────────────────────────────
+soundfile>=0.12.1
+numpy>=1.24.0
+
+# Optional: better resampling (falls back to linear interpolation if missing)
+# librosa>=0.10.0
+
+# Optional: ffmpeg Python bindings (the real requirement is the ffmpeg system
+# binary — install it via apt/brew/winget; this package alone is not enough).
+# ffmpeg-python>=0.2.0
+
+# ── ML / Deep Learning ──────────────────────────────────────
+torch>=2.0.0
+torchaudio>=2.0.0
+# torchvision  # only needed if you add image models
+
+# ── Translation (IndicTrans2) ────────────────────────────────
+transformers==4.40.0
+huggingface-hub==0.23.2
+tokenizers==0.19.1
+sentencepiece>=0.1.99
+sacremoses>=0.0.53
+indic-transliteration>=2.3.48
+# IndicTransToolkit — install separately:
+#   pip install git+https://github.com/VarunGumma/IndicTransToolkit.git
+
+# ── TTS (Kokoro) ─────────────────────────────────────────────
+kokoro>=0.9.4
+# Install separately if available on PyPI:
+#   pip install kokoro
+
+# ── RAG / Semantic Search ────────────────────────────────────
+sentence-transformers==3.0.1
+scikit-learn>=1.4.0
+
+# ── Speaker Diarization ──────────────────────────────────────
+speechbrain>=1.0.0
+silero-vad>=5.1
+
+# ── Sign Language ────────────────────────────────────────────
+mediapipe>=0.10.14
+opencv-python-headless>=4.9.0   # headless = no GUI, suitable for server
+
+# ── HTTP Client (for NVIDIA API) ────────────────────────────
+openai>=1.30.0
+
+# ── Logging / Utilities ─────────────────────────────────────
+httpx>=0.27.0                   # used by FastAPI TestClient in dev

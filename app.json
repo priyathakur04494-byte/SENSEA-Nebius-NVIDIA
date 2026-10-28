@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "SENSEA \u2014 Accessibility Assistant",
+    "slug": "sensea-accessibility-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#F7F5F0"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "We need the microphone to caption speech and detect important sounds like alarms and doorbells around you.",
+        "NSSpeechRecognitionUsageDescription": "We use speech recognition to generate live captions.",
+        "NSCameraUsageDescription": "We use the camera to recognise the sign language you make with your hands. Video stays on your device."
+      }
+    },
+    "android": {
+      "permissions": [
+        "RECORD_AUDIO",
+        "CAMERA"
+      ],
+      "package": "com.sensea.accessibility"
+    },
+    "plugins": []
+  }
+}

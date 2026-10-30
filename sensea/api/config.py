@@ -64,8 +64,8 @@ WHISPER_CPP_PATH: str = os.getenv(
 )
 
 # ── Whisper models ──────────────────────────────────────────
-WHISPER_SMALL_MODEL: str = os.getenv("WHISPER_SMALL_MODEL", "small")
-WHISPER_MEDIUM_MODEL: str = os.getenv("WHISPER_MEDIUM_MODEL", "medium")
+WHISPER_SMALL_MODEL: str = os.getenv("WHISPER_SMALL_MODEL", "base.en")
+WHISPER_MEDIUM_MODEL: str = os.getenv("WHISPER_MEDIUM_MODEL", "base.en")
 
 # ── Sign-language model ─────────────────────────────────────
 SIGN_LANGUAGE_MODEL_PATH: str = os.getenv(

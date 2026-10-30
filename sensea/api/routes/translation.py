@@ -70,9 +70,6 @@ async def translate(body: TranslationRequest) -> TranslationResponse:
 
 # ── POST /api/tts ────────────────────────────────────────────
 
-class _TTSRequest:
-    """Simple dataclass for TTS body."""
-    pass
 
 
 from pydantic import BaseModel, Field

@@ -235,7 +235,7 @@ SPEECH_LANGUAGE_CONFIGS = {
     "eng_Latn": {
         "name": "English",
         "whisper_lang": "en",
-        "model": "small",
+        "model": "base.en",
         "romanize": False,
     },
     "hin_Deva": {

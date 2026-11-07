@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SENSEA hand tracker</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0F1722; overflow: hidden;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  #stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #cam { position: relative; width: 320px; height: 240px; background: #000; border-radius: 12px; overflow: hidden; }
+  #cam video, #cam canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #cam.mirror video, #cam.mirror canvas { transform: scaleX(-1); }
+  #chip { display: none; position: absolute; transform: translateX(-50%); background: #FFFFFF; color: #1B2430;
+    font-weight: 800; font-size: 17px; padding: 6px 12px; border-radius: 999px; white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,.35); pointer-events: none; }
+  #msg { display: none; position: absolute; left: 12px; right: 12px; bottom: 12px; color: #fff; background: rgba(15,23,34,.82);
+    padding: 10px 12px; border-radius: 10px; font-size: 14px; line-height: 1.35; text-align: center; }
+  #big { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; color: #fff;
+    font-size: 64px; font-weight: 800; background: rgba(15,23,34,.45); text-shadow: 0 2px 12px rgba(0,0,0,.5); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="cam" class="mirror">
+    <video id="video" playsinline muted autoplay></video>
+    <canvas id="overlay"></canvas>
+    <div id="chip"></div>
+    <div id="big"></div>
+  </div>
+  <div id="msg"></div>
+</div>
+<script>window.__SENSEA_CONFIG__ = /*__CONFIG__*/null;</script>
+<script>/*__CLASSIFIER__*/</script>
+<script type="module">/*__PAGE__*/</script>
+</body>
+</html>

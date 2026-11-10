@@ -29,3 +29,31 @@ export const RECOGNIZABLE_SIGNS: RecognizableSign[] = [
   { label: "C", how: "Curved hand like holding a cup" },
   { label: "Fist (S / A)", how: "Closed fist" },
 ];
+
+
+/**
+ * 20 Indian Sign Language (ISL) gestures recognized by the SENSEA backend
+ * PyTorch Deep Learning Model (Conv1D + BiGRU + Attention).
+ */
+export const ISL_ML_SIGNS: string[] = [
+  "hello",
+  "goodbye",
+  "thank_you",
+  "sorry",
+  "please",
+  "yes",
+  "no",
+  "help",
+  "stop",
+  "okay",
+  "me",
+  "you",
+  "mother",
+  "father",
+  "friend",
+  "home",
+  "hospital",
+  "eat",
+  "drink",
+  "water",
+];

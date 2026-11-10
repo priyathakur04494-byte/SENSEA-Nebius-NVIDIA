@@ -35,7 +35,8 @@ else:
 
 
 # ── ML Backend path on sys.path ─────────────────────────────
-ML_BACKEND_DIR = Path(os.getenv("ML_BACKEND_DIR", str(_SENSEA_DIR / "ML Backend")))
+_default_ml_dir = _SENSEA_DIR / "ml_backend" if (_SENSEA_DIR / "ml_backend").exists() else _SENSEA_DIR / "ML Backend"
+ML_BACKEND_DIR = Path(os.getenv("ML_BACKEND_DIR", str(_default_ml_dir)))
 
 if str(ML_BACKEND_DIR) not in sys.path:
     sys.path.append(str(ML_BACKEND_DIR))
@@ -44,6 +45,12 @@ if str(ML_BACKEND_DIR) not in sys.path:
 _SIGN_LANG_DIR = ML_BACKEND_DIR / "sign_language"
 if str(_SIGN_LANG_DIR) not in sys.path:
     sys.path.append(str(_SIGN_LANG_DIR))
+
+# Ensure sensea root (for services) and api dir are on sys.path
+if str(_SENSEA_DIR) not in sys.path:
+    sys.path.append(str(_SENSEA_DIR))
+if str(_HERE) not in sys.path:
+    sys.path.append(str(_HERE))
 
 
 # ── NVIDIA / Nemotron ───────────────────────────────────────

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import HandTrackerView from "./HandTrackerView";
+import SignMlPredictor from "./SignMlPredictor";
 import {
   DetectedSign,
   HandTrackerHandle,
@@ -51,9 +52,10 @@ export default function SignRecognizer() {
   const [teachNote, setTeachNote] = useState<string | null>(null);
   const [showVocab, setShowVocab] = useState(false);
   const [pageReady, setPageReady] = useState(false);
+  const [recognizerMode, setRecognizerMode] = useState<"ml" | "tracker">("ml");
 
   useEffect(() => {
-    loadCustomSigns().then((list) => {
+    loadCustomSigns().then((list: CustomSign[]) => {
       setCustom(list);
       setLoadedCustom(true);
     });
@@ -388,28 +390,71 @@ export default function SignRecognizer() {
     <View>
       <Text style={styles.title}>Sign to text</Text>
       <Text style={styles.subtitle}>
-        Hold your hands in front of the camera and make a sign. SENSEA tracks your hands, shows the sign it sees and
-        can say it aloud. Video stays on your device.
+        Recognize sign language gestures using either your trained PyTorch ISL deep learning model, or instant on-device hand tracking.
       </Text>
 
-      {isWide ? (
-        <View style={styles.wideRow}>
-          <View style={{ width: camWidth + 2 }}>
-            {camera}
-            {vocab}
+      <View style={styles.modeToggleBar}>
+        <Pressable
+          onPress={() => setRecognizerMode("ml")}
+          style={[styles.modeToggleTab, recognizerMode === "ml" && styles.modeToggleTabActive]}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: recognizerMode === "ml" }}
+        >
+          <Ionicons
+            name="hardware-chip"
+            size={16}
+            color={recognizerMode === "ml" ? colors.textOnAccent : colors.accentStrong}
+          />
+          <Text style={[styles.modeToggleText, recognizerMode === "ml" && styles.modeToggleTextActive]}>
+            ISL Neural Model (Backend ML)
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setRecognizerMode("tracker")}
+          style={[styles.modeToggleTab, recognizerMode === "tracker" && styles.modeToggleTabActive]}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: recognizerMode === "tracker" }}
+        >
+          <Ionicons
+            name="hand-left-outline"
+            size={16}
+            color={recognizerMode === "tracker" ? colors.textOnAccent : colors.accentStrong}
+          />
+          <Text style={[styles.modeToggleText, recognizerMode === "tracker" && styles.modeToggleTextActive]}>
+            On-Device Tracker (18 Signs)
+          </Text>
+        </Pressable>
+      </View>
+
+      {recognizerMode === "ml" ? (
+        <SignMlPredictor
+          onSignRecognized={(sign) => {
+            setTranscript((t) => [...t.slice(-39), { id: 'ml_' + String(Date.now()), label: sign, confidence: 0.95 }]);
+          }}
+        />
+      ) : null}
+
+      {recognizerMode === "tracker" && (
+        isWide ? (
+          <View style={styles.wideRow}>
+            <View style={{ width: camWidth + 2 }}>
+              {camera}
+              {vocab}
+            </View>
+            <View style={{ flex: 1 }}>
+              {result}
+              {teach}
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
+        ) : (
+          <>
+            {camera}
             {result}
             {teach}
-          </View>
-        </View>
-      ) : (
-        <>
-          {camera}
-          {result}
-          {teach}
-          {vocab}
-        </>
+            {vocab}
+          </>
+        )
       )}
     </View>
   );
@@ -425,6 +470,37 @@ function Badge({ icon, text }: { icon: keyof typeof Ionicons.glyphMap; text: str
 }
 
 const styles = StyleSheet.create({
+  modeToggleBar: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    padding: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.md,
+  },
+  modeToggleTab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: radius.pill,
+    backgroundColor: "transparent",
+  },
+  modeToggleTabActive: {
+    backgroundColor: colors.accent,
+  },
+  modeToggleText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.textSecondary,
+  },
+  modeToggleTextActive: {
+    color: colors.textOnAccent,
+  },
   title: { fontSize: 22, fontWeight: "800", color: colors.textPrimary },
   subtitle: { fontSize: 14, lineHeight: 20, color: colors.textSecondary, marginTop: 4, marginBottom: spacing.md },
   wideRow: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start" },

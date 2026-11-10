@@ -1,3 +1,16 @@
+# Node / Frontend
+node_modules/
+*/node_modules/
+frontend/node_modules/
+.expo/
+*/.expo/
+frontend/.expo/
+dist/
+*/dist/
+web-build/
+*/web-build/
+*.log
+
 # Python
 __pycache__/
 *.py[cod]

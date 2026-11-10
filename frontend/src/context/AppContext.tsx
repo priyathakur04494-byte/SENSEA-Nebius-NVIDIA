@@ -6,10 +6,20 @@ import {
   Speaker,
   SupportedLanguage,
 } from "@/types";
-import { simplifyText, stopStream } from "@/services/speechService";
-import { transcribeAudio } from "@/services/backendApi";
+
+// ── Service layer ──────────────────────────────────────────────────────────
+// Switch between mock and real by changing the import path:
+//   Mock (default):  @/services/mock/mockSpeechService
+//   Real (backend):  @/services/real/realSpeechService
+import speechService from "@/services/real/realSpeechService";
+import { simplifyText } from "@/services/mock/mockSpeechService";
+
+// Switch sound detection:
+//   Mock (default):  @/services/mock/mockSoundDetectionService
+//   Real (native):   @/services/real/realSoundDetectionService
+import soundDetectionService from "@/services/mock/mockSoundDetectionService";
+
 import { translateText } from "@/services/translationService";
-import { startMockDetection, stopMockDetection } from "@/services/soundDetectionService";
 import {
   addDeadline,
   extractPossibleDeadline,
@@ -100,75 +110,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   
 
-
 const toggleListening = useCallback(async () => {
   if (isListening) {
-    mediaRecorderRef.current?.stop();
+    // Stop the mock/real speech service stream
+    speechService.stopStream();
     setIsListening(false);
     return;
   }
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-    });
-    streamRef.current = stream;
-
-    const mimeType = MediaRecorder.isTypeSupported("audio/webm")
-      ? "audio/webm"
-      : "";
-
-    const recorder = new MediaRecorder(
-      stream,
-      mimeType ? { mimeType } : undefined
-    );
-    mediaRecorderRef.current = recorder;
-
-    const chunks: BlobPart[] = [];
-
-    recorder.ondataavailable = (event) => {
-      if (event.data.size > 0) chunks.push(event.data);
-    };
-
-    recorder.onstop = async () => {
-      try {
-        const blob = new Blob(chunks, {
-          type: recorder.mimeType || "audio/webm",
-        });
-
-        const result = await transcribeAudio(blob, "eng_Latn");
-
-        if (result.transcript?.trim()) {
-          await handleCaption({
-            id: String(Date.now()),
-            speakerId: "speaker-1",
-            originalText: result.transcript,
-            language: "en",
-            timestamp: Date.now(),
-            isFinal: true,
-          });
-        }
-      } catch (error) {
-        alert(
-          error instanceof Error
-            ? error.message
-            : "Transcription failed."
-        );
-      } finally {
-        stream.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-        mediaRecorderRef.current = null;
-        setIsListening(false);
-      }
-    };
-
-    recorder.start();
-    setIsListening(true);
-  } catch (error) {
-    console.error(error);
-    alert("Could not access the microphone. Please allow microphone access.");
-    setIsListening(false);
-  }
+  // Start the mock/real speech service — it calls handleCaption on each result
+  speechService.startStream(handleCaption, targetLanguageRef.current);
+  setIsListening(true);
 }, [isListening, handleCaption]);
 
 
@@ -178,11 +130,11 @@ const toggleListening = useCallback(async () => {
     // Environmental sound detection runs independently of the caption stream —
     // a user should be alerted to a siren whether or not they're actively
     // captioning a conversation.
-    startMockDetection((event) => {
+    soundDetectionService.startDetection((event) => {
       setSoundEvents((prev) => [event, ...prev].slice(0, 50));
       setLatestSoundEvent(event);
     });
-    return () => stopMockDetection();
+    return () => soundDetectionService.stopDetection();
   }, []);
 
   const dismissLatestSoundEvent = useCallback(() => setLatestSoundEvent(null), []);

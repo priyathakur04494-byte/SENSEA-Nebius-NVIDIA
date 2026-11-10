@@ -20,9 +20,18 @@ from __future__ import annotations
 import io
 import logging
 import os
+import sys
 import tempfile
 from pathlib import Path
 from typing import Optional
+
+# Prevent MediaPipe from failing if TensorFlow has mismatched protobuf
+for _tf_mod in ("tensorflow", "tensorflow.tools", "tensorflow.tools.docs"):
+    if _tf_mod not in sys.modules:
+        try:
+            __import__(_tf_mod)
+        except Exception:
+            sys.modules[_tf_mod] = None
 
 import numpy as np
 
@@ -67,7 +76,7 @@ def _init_sign_language() -> None:
                 "Set SIGN_LANGUAGE_MODEL_PATH in .env."
             )
 
-        checkpoint = torch.load(str(ckpt_path), map_location=device)
+        checkpoint = torch.load(str(ckpt_path), map_location=device, weights_only=False)
         state = checkpoint.get("model_state_dict", checkpoint)
         model.load_state_dict(state)
         model.eval()
@@ -214,8 +223,9 @@ def predict_from_video(video_bytes: bytes) -> dict:
 
     import torch  # type: ignore
 
-    # Write to temp file (cv2.VideoCapture needs a path)
-    tmp = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+    # Detect WebM container (EBML magic header \x1a\x45\xdf\xa3) or default to mp4
+    suffix = ".webm" if video_bytes.startswith(b"\x1a\x45\xdf\xa3") else ".mp4"
+    tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
     try:
         tmp.write(video_bytes)
         tmp.close()

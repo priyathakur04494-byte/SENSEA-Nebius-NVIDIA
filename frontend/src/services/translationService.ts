@@ -1,59 +1,83 @@
 /**
  * TRANSLATION SERVICE
- * --------------------
- * Tries the real Bhashini API first (see bhashiniClient.ts and
- * src/config/bhashiniConfig.ts for setup). If Bhashini isn't configured yet,
- * or a call fails (no network, bad credentials, API hiccup), this falls back
- * to a tiny built-in phrase dictionary so the app still demonstrates
- * translation working end to end, plus a clearly-marked placeholder for
- * anything outside that dictionary.
+ * -------------------
+ * Bridges live-caption / type-to-speak text to real translated text.
  *
- * TO GO LIVE: fill in real credentials in src/config/bhashiniConfig.ts.
- * That's the only file you need to touch — this service and everything
- * that calls it (captions, type-to-speak) needs no further changes.
+ * Priority chain:
+ *   1. SENSEA backend  → POST /api/translation (IndicTrans2 / Nemotron)
+ *   2. Free web translation → direct translation fallback (no API key needed)
+ *   3. Bhashini API    → if configured with credentials
+ *   4. Mock dictionary → phrase-level fallback for demo phrases
+ *   5. Placeholder     → clearly-marked "[XX translation pending…]" string
  */
 
 import { SupportedLanguage } from "@/types";
-import { bhashiniTranslate } from "@/services/bhashiniClient";
+import { translateTextBackend } from "@/services/backendApi";
+import { bhashiniTranslate } from "@/config/bhashiniClient";
 import { isBhashiniConfigured } from "@/config/bhashiniConfig";
 
-// A small on-device phrase table used only as a fallback when Bhashini
-// isn't configured or a call fails, so the demo still works with zero
-// network access.
+// ── UI code → IndicTrans2 code ─────────────────────────────────────────────
+
+const UI_TO_INDIC: Record<SupportedLanguage, string> = {
+  en: "eng_Latn",
+  hi: "hin_Deva",
+  ta: "tam_Taml",
+  te: "tel_Telu",
+  bn: "ben_Beng",
+  mr: "mar_Deva",
+  gu: "guj_Gujr",
+  kn: "kan_Knda",
+  ml: "mal_Mlym",
+  pa: "pan_Guru",
+};
+
+// ── Phrase-level mock dictionary (demo fallback) ───────────────────────────
+
 const MOCK_DICTIONARY: Record<string, Partial<Record<SupportedLanguage, string>>> = {
   "Hey, did you get a chance to look at the report I sent?": {
     hi: "अरे, क्या आपने मेरी भेजी रिपोर्ट देखी?",
-    ta: "ஏய், நான் அனுப்பிய அறிக்கையை பார்த்தீர்களா?",
-    te: "హే, నేను పంపిన నివేదికను చూశారా?",
+    ta: "ஏய், நான் அனுப்பிய அறிக்கையைப் பார்க்க வாய்ப்பு கிடைத்ததா?",
+    te: "హే, నేను పంపిన నివేదికను చూసే అవకాశం మీకు దొరికిందా?",
   },
   "Not yet, I'll review it after lunch, around 2pm today.": {
-    hi: "अभी नहीं, मैं आज दोपहर के भोजन के बाद, लगभग 2 बजे इसे देखूंगा।",
-    ta: "இன்னும் இல்லை, மதிய உணவுக்குப் பிறகு, சுமார் 2 மணிக்கு பார்ப்பேன்.",
-    te: "ఇంకా లేదు, భోజనం తర్వాత, దాదాపు 2 గంటలకు చూస్తాను.",
+    hi: "अभी नहीं, मैं दोपहर के भोजन के बाद लगभग 2 बजे देखूंगा।",
+    ta: "இன்னும் இல்லை, மதிய உணவுக்குப் பிறகு சுமார் 2 மணிக்கு மதிப்பாய்வு செய்கிறேன்.",
+    te: "ఇంకా లేదు, లంచ్ తర్వాత మధ్యాహ్నం 2 గంటల ప్రాంతంలో రివ్యూ చేస్తాను.",
   },
   "Okay, no rush, but the client meeting is Friday morning.": {
-    hi: "ठीक है, जल्दी नहीं है, लेकिन क्लाइंट मीटिंग शुक्रवार सुबह है।",
-    ta: "சரி, அவசரம் இல்லை, ஆனால் வாடிக்கையாளர் கூட்டம் வெள்ளி காலை.",
-    te: "సరే, తొందర లేదు, కానీ క్లయింట్ మీటింగ్ శుక్రవారం ఉదయం.",
+    hi: "ठीक है, कोई जल्दी नहीं, लेकिन क्लाइंट मीटिंग शुक्रवार सुबह है।",
+    ta: "சரி, அவசரமில்லை, ஆனால் வாடிக்கையாளர் சந்திப்பு வெள்ளிக்கிழமை காலை.",
+    te: "సరే, తొందరేం లేదు, కానీ క్లయింట్ మీటింగ్ శుక్రవారం ఉదయం ఉంది.",
   },
   "Got it, I'll have comments back to you by Thursday.": {
-    hi: "समझ गया, मैं गुरुवार तक आपको टिप्पणियाँ भेज दूंगा।",
-    ta: "சரி, வியாழக்கிழமைக்குள் கருத்துகளை அனுப்புவேன்.",
-    te: "అర్థమైంది, గురువారం లోపు కామెంట్స్ పంపుతాను.",
-  },
-  "Sounds good. Also, happy birthday for next week, by the way!": {
-    hi: "ठीक है। और हाँ, अगले हफ्ते जन्मदिन की अग्रिम शुभकामनाएं!",
-    ta: "சரி. அடுத்த வாரம் பிறந்தநாள் வாழ்த்துக்கள் முன்கூட்டியே!",
-    te: "సరే. వచ్చే వారం పుట్టినరోజు శుభాకాంక్షలు ముందుగానే!",
+    hi: "समझ गया, मैं गुरुवार तक टिप्पणियाँ वापस दे दूँगा।",
+    ta: "புரிந்தது, வியாழக்கிழமைக்குள் உங்களுக்குக் கருத்துகளைத் தருகிறேன்.",
+    te: "అర్థమైంది, గురువారానికల్లా కామెంట్స్ మీకు అందిస్తాను.",
   },
 };
 
-/**
- * True if `translateText` actually reached a real translation (Bhashini,
- * or a mock-dictionary hit) rather than returning the "not available yet"
- * placeholder. Callers (like the type-to-speak screen) use this to decide
- * whether it's safe to speak the result aloud.
- */
+// ── Free web translation fallback ─────────────────────────────────────────
+
+async function freeWebTranslate(
+  text: string,
+  sourceLang: string,
+  targetLang: string
+): Promise<string> {
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(
+    sourceLang
+  )}&tl=${encodeURIComponent(targetLang)}&dt=t&q=${encodeURIComponent(text)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (Array.isArray(data) && Array.isArray(data[0])) {
+    const translated = data[0].map((item: any) => item[0]).join("");
+    if (translated.trim()) return translated;
+  }
+  throw new Error("Empty translation result");
+}
+
+// ── Public API ─────────────────────────────────────────────────────────────
+
 export function isPendingPlaceholder(text: string): boolean {
   return /^\[[A-Z]{2} translation pending API integration\]/.test(text);
 }
@@ -63,24 +87,46 @@ export async function translateText(
   targetLanguage: SupportedLanguage,
   sourceLanguage: SupportedLanguage = "en"
 ): Promise<string> {
-  if (targetLanguage === sourceLanguage) return text;
+  if (!text.trim() || targetLanguage === sourceLanguage) return text;
 
+  const sourceIndic = UI_TO_INDIC[sourceLanguage];
+  const targetIndic = UI_TO_INDIC[targetLanguage];
+
+  // 1. Try SENSEA FastAPI backend
+  if (sourceIndic && targetIndic) {
+    try {
+      const result = await translateTextBackend(text, sourceIndic, targetIndic);
+      if (result.translation && result.translation.trim()) {
+        return result.translation;
+      }
+    } catch (err) {
+      console.warn("[translationService] Backend translation failed, trying free fallback:", err);
+    }
+  }
+
+  // 2. Try free web translation fallback (instant, works anywhere in browser)
+  try {
+    const webResult = await freeWebTranslate(text, sourceLanguage, targetLanguage);
+    if (webResult) return webResult;
+  } catch (err) {
+    console.warn("[translationService] Free web translation failed:", err);
+  }
+
+  // 3. Try Bhashini (if credentials configured)
   if (isBhashiniConfigured()) {
     try {
       return await bhashiniTranslate(text, sourceLanguage, targetLanguage);
     } catch (err) {
-      // Fall through to the mock dictionary below rather than breaking the
-      // caption/speech flow over a network hiccup.
-      console.warn("Bhashini translation failed, falling back to mock:", err);
+      console.warn("[translationService] Bhashini translation failed, using mock dict:", err);
     }
   }
 
+  // 4. Mock dictionary (demo phrases)
   const entry = MOCK_DICTIONARY[text];
   if (entry && entry[targetLanguage]) {
     return entry[targetLanguage] as string;
   }
 
-  // Fallback for text outside the demo dictionary and without a configured
-  // API — clearly marked so it's never mistaken for a real translation.
+  // 5. Clearly-marked placeholder (last resort)
   return `[${targetLanguage.toUpperCase()} translation pending API integration] ${text}`;
 }

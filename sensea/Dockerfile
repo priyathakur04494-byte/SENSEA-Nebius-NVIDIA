@@ -49,7 +49,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 ENV SENSEA_HOST=0.0.0.0
 ENV SENSEA_PORT=8000
 ENV SENSEA_ENV=production
-ENV ML_BACKEND_DIR=/app/sensea/ML\ Backend
+ENV ML_BACKEND_DIR=/app/sensea/ml_backend
 ENV WHISPER_CPP_PATH=/opt/whisper.cpp
 ENV SIGN_LANGUAGE_MODEL_PATH=/opt/models/sign_language_model.pth
 ENV MEDIAPIPE_DIR=/opt/models/mediapipe
@@ -60,7 +60,7 @@ EXPOSE 8000
 # ── Production startup ───────────────────────────────────────
 # Single worker — in-memory state (RAG, diarization) is not shared
 # across workers. Use external storage (Redis/pgvector) before scaling.
-CMD ["uvicorn", "sensea.api.main:app", \
+CMD ["uvicorn", "sensea.main:app", \
      "--host", "0.0.0.0", \
      "--port", "8000", \
      "--workers", "1", \

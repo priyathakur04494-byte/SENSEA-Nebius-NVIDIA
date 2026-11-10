@@ -25,8 +25,12 @@ from pathlib import Path
 
 # ── Bootstrap: ensure ML Backend + sign_language are importable ─
 # config.py inserts paths into sys.path at import time.
-_API_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(_API_DIR))
+_CURRENT_DIR = Path(__file__).resolve().parent
+_API_DIR = _CURRENT_DIR / "api" if (_CURRENT_DIR / "api").exists() else _CURRENT_DIR
+if str(_CURRENT_DIR) not in sys.path:
+    sys.path.insert(0, str(_CURRENT_DIR))
+if str(_API_DIR) not in sys.path:
+    sys.path.insert(0, str(_API_DIR))
 
 import config  # noqa: E402  (must be before ML imports)
 

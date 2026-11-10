@@ -87,3 +87,12 @@ export interface ConversationSession {
   participantIds: string[];
   summary?: string;
 }
+
+
+export type AppMode = "hospital" | "workplace" | "classroom";
+
+export const MODE_LABELS: Record<AppMode, string> = {
+  hospital: "Hospital",
+  workplace: "Workplace",
+  classroom: "Classroom",
+};

@@ -36,6 +36,12 @@ const FEATURES: Feature[] = [
     tab: "Captions",
   },
   {
+    icon: "hand-left-outline",
+    title: "Sign Language",
+    description: "Camera-based hand tracking to recognize, practice, and learn sign language in real time.",
+    tab: "Signs",
+  },
+  {
     icon: "sparkles-outline",
     title: "AI Context",
     description: "A live summary, important points, decisions, and a running answer to \"what did I miss?\"",

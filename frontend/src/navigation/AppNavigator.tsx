@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "@/screens/HomeScreen";
 import LiveCaptionScreen from "@/screens/LiveCaptionScreen";
+import SignLanguageScreen from "@/screens/SignLanguageScreen";
 import SoundAlertsScreen from "@/screens/SoundAlertsScreen";
 import TypeToSpeakScreen from "@/screens/TypeToSpeakScreen";
 import SummaryScreen from "@/screens/SummaryScreen";
@@ -38,6 +39,7 @@ export type AuthStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   Captions: undefined;
+  Signs: undefined;
   Summary: undefined;
   Alerts: undefined;
   Speak: undefined;
@@ -68,6 +70,7 @@ const navTheme = {
 
 const ICONS: Record<string, { active: keyof typeof Ionicons.glyphMap; inactive: keyof typeof Ionicons.glyphMap }> = {
   Captions: { active: "chatbubble-ellipses", inactive: "chatbubble-ellipses-outline" },
+  Signs: { active: "hand-left", inactive: "hand-left-outline" },
   Summary: { active: "sparkles", inactive: "sparkles-outline" },
   Alerts: { active: "notifications", inactive: "notifications-outline" },
   Speak: { active: "volume-high", inactive: "volume-high-outline" },
@@ -80,6 +83,7 @@ const ICONS: Record<string, { active: keyof typeof Ionicons.glyphMap; inactive: 
 const TAB_LABELS: Record<string, string> = {
   Home: "Home",
   Captions: "Live",
+  Signs: "Signs",
   Summary: "Context",
   Alerts: "Alerts",
   Speak: "Speak",
@@ -89,6 +93,7 @@ const TAB_LABELS: Record<string, string> = {
 const SUBTITLES: Record<string, string> = {
   Home: "Home",
   Captions: "Live Captions",
+  Signs: "Sign Language",
   Summary: "AI Context",
   Alerts: "Sound Alerts",
   Speak: "Type to Speak",
@@ -139,6 +144,7 @@ function MainTabs() {
       })}
     >
       <Tab.Screen name="Captions" component={LiveCaptionScreen} />
+      <Tab.Screen name="Signs" component={SignLanguageScreen} />
       <Tab.Screen name="Summary" component={SummaryScreen} />
       <Tab.Screen name="Alerts" component={SoundAlertsScreen} />
       <Tab.Screen name="Speak" component={TypeToSpeakScreen} />

@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: sensea/Dockerfile
+    container_name: sensea-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - sensea/.env
+    restart: unless-stopped
+    # For NVIDIA GPU instances (Nebius / AWS / GCP), uncomment below:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]

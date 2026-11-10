@@ -7,6 +7,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "build:web": "node scripts/build-hand-tracker.js && expo export -p web",
     "build:tracker": "node scripts/build-hand-tracker.js",
     "test:signs": "node scripts/test-classifier.js",
     "typecheck": "tsc --noEmit"

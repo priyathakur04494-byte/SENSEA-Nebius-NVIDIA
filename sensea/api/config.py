@@ -88,7 +88,7 @@ MEDIAPIPE_DIR: str = os.getenv(
 
 # ── Server ──────────────────────────────────────────────────
 HOST: str = os.getenv("SENSEA_HOST", "0.0.0.0")
-PORT: int = int(os.getenv("SENSEA_PORT", "8000"))
+PORT: int = int(os.getenv("PORT", os.getenv("SENSEA_PORT", "8000")))
 
 # ── CORS ────────────────────────────────────────────────────
 # Comma-separated list of allowed origins.

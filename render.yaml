@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: sensea-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: SENSEA_ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: NVIDIA_API_KEY
+        sync: false

@@ -5,6 +5,7 @@ from routes.translation import router as translation_router
 import config
 from routes.chat import router as chat_router
 from routes.speech import router as speech_router
+from routes.tts import router as tts_router
 
 app = FastAPI(
     title="SENSEA API",
@@ -24,6 +25,7 @@ app.include_router(chat_router)
 app.include_router(conversation_router)
 app.include_router(translation_router)
 app.include_router(speech_router)
+app.include_router(tts_router)
 
 
 @app.get("/")
